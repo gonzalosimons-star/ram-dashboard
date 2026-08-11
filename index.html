@@ -553,22 +553,28 @@ function renderResumen(){
 
   // Table first, then narrative
   compactTable("res-tbl",[
+    // GMV = DO × Ticket
+    {label:"GMV (USD)",         fn:function(lc,i){return gvP(lc,"$ Price (USD)",i);},                                           type:"usd",  invert:false, isFlow:true },
+    {label:"Avg Ticket (USD)",  fn:function(lc,i){return safe(gvP(lc,"$ Price (USD)",i),gvP(lc,"# DO",i));},                   type:"usd",  invert:false, isFlow:false,
+     totalFn:function(i){return safe(sumLCs("$ Price (USD)",i,true),sumLCs("# DO",i,true));}},
+    // DO = Users × Frequency
     {label:"# DO",              fn:function(lc,i){return gvP(lc,"# DO",i);},                                                    type:"num",  invert:false, isFlow:true },
     {label:"# Active Users",    fn:function(lc,i){return gv(lc,"# Users Active Base",i);},                                      type:"num",  invert:false, isFlow:false},
     {label:"DO / Active User",  fn:function(lc,i){return safe(gvP(lc,"# DO",i),gv(lc,"# Users Active Base",i));},              type:"ratio",invert:false, isFlow:false,
      totalFn:function(i){return safe(sumLCs("# DO",i,true),sumLCs("# Users Active Base",i,false));}},
+    // Funnel: Est × CR × SR = DO
     {label:"% CR (Est→RE)",fn:function(lc,i){return cgv(lc,"% CR (E2RE)",i);},                                             type:"pct",  invert:false, isFlow:false,
      totalFn:function(i){const re=sumLCs("# RE",i,false),est=sumLCs("# Estimations",i,false);return(re&&est&&est>0)?(re/est)*100:null;}},
     {label:"% SR (RE→DO)", fn:function(lc,i){return cgv(lc,"% SR",i);},                                                    type:"pct",  invert:false, isFlow:false,
      totalFn:function(i){const do_=sumLCs("# DO",i,true),re=sumLCs("# RE",i,false);return(do_&&re&&re>0)?(do_/re)*100:null;}},
-    {label:"GMV (USD)",         fn:function(lc,i){return gvP(lc,"$ Price (USD)",i);},                                           type:"usd",  invert:false, isFlow:true },
-    {label:"Avg Ticket (USD)",  fn:function(lc,i){return safe(gvP(lc,"$ Price (USD)",i),gvP(lc,"# DO",i));},                   type:"usd",  invert:false, isFlow:false,
-     totalFn:function(i){return safe(sumLCs("$ Price (USD)",i,true),sumLCs("# DO",i,true));}},
-    {label:"# DOs c/ Discount", fn:function(lc,i){return gv(lc,"# DO w/ Discount",i);},                                        type:"num",  invert:true,  isFlow:true },
-    {label:"Disc/DO-disc (USD)", fn:function(lc,i){return safe(gvP(lc,"$ Discount (USD)",i),gv(lc,"# DO w/ Discount",i));},    type:"usd",  invert:true,  isFlow:false,
-     totalFn:function(i){return safe(sumLCs("$ Discount (USD)",i,true),sumLCs("# DO w/ Discount",i,false));}},
+    // Inversión en Descuentos
     {label:"% DOs c/ Discount", fn:function(lc,i){return pctOf(gv(lc,"# DO w/ Discount",i),gvP(lc,"# DO",i));},               type:"pct",  invert:true,  isFlow:false,
      totalFn:function(i){return pctOf(sumLCs("# DO w/ Discount",i,false),sumLCs("# DO",i,true));}},
+    {label:"Disc/DO-disc (USD)", fn:function(lc,i){return safe(gvP(lc,"$ Discount (USD)",i),gv(lc,"# DO w/ Discount",i));},    type:"usd",  invert:true,  isFlow:false,
+     totalFn:function(i){return safe(sumLCs("$ Discount (USD)",i,true),sumLCs("# DO w/ Discount",i,false));}},
+    {label:"$ Inversión Descuentos (USD)",fn:function(lc,i){return gvP(lc,"$ Discount (USD)",i);},                              type:"usd",  invert:true,  isFlow:true,
+     totalFn:function(i){return sumLCs("$ Discount (USD)",i,true);}},
+    // NJR
     {label:"NJR/Active User (USD)",fn:function(lc,i){const p2=gvP(lc,"$ Price (USD)",i),c=gvP(lc,"$ Cost (USD)",i),ab2=gv(lc,"# Users Active Base",i);return(p2!==null&&c!==null&&ab2)?((p2-c)/ab2):null;},type:"usd",invert:false,isFlow:false,
      totalFn:function(i){const p=sumLCs("$ Price (USD)",i,true),c=sumLCs("$ Cost (USD)",i,true),ab=sumLCs("# Users Active Base",i,false);return(p&&c&&ab)?(p-c)/ab:null;}},
     {label:"% NJR (Price−Cost)",   fn:function(lc,i){const p2=gvP(lc,"$ Price (USD)",i),c=gvP(lc,"$ Cost (USD)",i);return(p2&&c&&p2>0)?((p2-c)/p2)*100:null;},type:"pct",invert:false,isFlow:false,
